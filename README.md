@@ -1,4 +1,4 @@
-# Unsigs market Plutus
+# unsigs market plutus
 
 Updated [spacebudz](https://github.com/Berry-Pool/spacebudz) to newest plutus version, embedded in the [plutus-starter project](https://github.com/input-output-hk/plutus-starter). 
 
