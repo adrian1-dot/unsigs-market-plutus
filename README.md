@@ -1,6 +1,6 @@
-# Plutus Platform starter project
+# Unsigs market Plutus
 
-This project gives a simple starter project for using the Plutus Platform.
+Updated [spacebudz](https://github.com/Berry-Pool/spacebudz) plutus code, embedded in the [plutus-starter project](https://github.com/input-output-hk/plutus-starter)
 
 ## Run the Trace
 
