@@ -1,6 +1,8 @@
 # Unsigs market Plutus
 
-Updated [spacebudz](https://github.com/Berry-Pool/spacebudz) plutus code, embedded in the [plutus-starter project](https://github.com/input-output-hk/plutus-starter)
+Updated [spacebudz](https://github.com/Berry-Pool/spacebudz) to newest plutus version, embedded in the [plutus-starter project](https://github.com/input-output-hk/plutus-starter). 
+
+[`contract.hs`](https://github.com/Berry-Pool/spacebudz/blob/main/src/cardano/market/contract.hs) is split to `Onchain.hs` `Offchain.hs` `Types.hs`. `Utility.hs` is for the data needed to compile the contract.
 
 ## Run the Trace
 
@@ -21,7 +23,7 @@ cabal repl
 
 4. Import the Trace module
 ```
-importTrace
+import Trace
 ```
 
 5. Run the Test
