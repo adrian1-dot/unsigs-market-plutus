@@ -71,21 +71,21 @@ tradeValidate contractInfo@ContractInfo{..} tradeDatum tradeAction context = cas
         BidHigher -> 
             Bid details == scriptOutputDatum && -- expected correct script output datum
             Ada.fromValue (scriptInputValue) + Ada.lovelaceOf bidStep <= Ada.fromValue scriptOutputValue && -- expected correct bid amount
-            containsPolicyBidNFT scriptOutputValue budId && -- expected correct bidPolicy NFT
+            containsPolicyBidNFT scriptOutputValue nftId && -- expected correct bidPolicy NFT
             case txInfo `txSignedBy` tradeOwner of True -> True; False -> Ada.fromValue (valuePaidTo txInfo tradeOwner) >= Ada.fromValue scriptInputValue -- expected previous bidder refund
         Sell -> 
             scriptOutputDatum == StartBid && -- expected correct script output datum
-            containsPolicyBidNFT scriptOutputValue budId && -- expected correct bidPolicy NFT
-            containsSpaceBudNFT (valuePaidTo txInfo tradeOwner) budId && -- expected bidder to be paid
+            containsPolicyBidNFT scriptOutputValue nftId && -- expected correct bidPolicy NFT
+            containsUnsigsNFT (valuePaidTo txInfo tradeOwner) nftId && -- expected bidder to be paid
             correctSplit (getLovelace (Ada.fromValue scriptInputValue)) signer -- expected ada to be split correctly
         Cancel -> 
             txInfo `txSignedBy` tradeOwner && -- expected correct owner
             scriptOutputDatum == StartBid && -- expected correct script output datum
-            containsPolicyBidNFT scriptOutputValue budId -- expected correct bidPolicy NFT
+            containsPolicyBidNFT scriptOutputValue nftId -- expected correct bidPolicy NFT
 
     Offer TradeDetails{..} -> case tradeAction of
         Buy ->
-            containsSpaceBudNFT (valuePaidTo txInfo signer) budId && -- expected buyer to be paid
+            containsUnsigsNFT (valuePaidTo txInfo signer) nftId && -- expected buyer to be paid
             requestedAmount >= minPrice && -- expected at least minPrice buy
             correctSplit requestedAmount tradeOwner -- expected ada to be split correctly
         Cancel -> 
@@ -133,10 +133,10 @@ tradeValidate contractInfo@ContractInfo{..} tradeDatum tradeAction context = cas
         policyBidLength v = length $ policyAssets v policyBid
 
         containsPolicyBidNFT :: Value -> BuiltinByteString -> Bool
-        containsPolicyBidNFT v tn = valueOf v policyBid (TokenName (prefixSpaceBudBid <> tn)) >= 1
+        containsPolicyBidNFT v tn = valueOf v policyBid (TokenName (prefixUnsigsBid <> tn)) >= 1
 
-        containsSpaceBudNFT :: Value -> BuiltinByteString -> Bool
-        containsSpaceBudNFT v tn = valueOf v policySpaceBudz (TokenName (prefixSpaceBud <> tn)) >= 1
+        containsUnsigsNFT :: Value -> BuiltinByteString -> Bool
+        containsUnsigsNFT v tn = valueOf v policyUnsigs (TokenName (prefixUnsigs <> tn)) >= 1
 
         -- eager evaluation to check correct script inputs for all branches!!     
         scriptInputValue :: Value
@@ -150,14 +150,14 @@ tradeValidate contractInfo@ContractInfo{..} tradeDatum tradeAction context = cas
                 case xs of
                     [v] -> v -- normally just one script input is allowed
                     [v1, v2] -> 
-                        -- allow 2 script inputs if it's a combination of cancelling bid and buying OR cancelling offer and selling (same SpaceBud only)
+                        -- allow 2 script inputs if it's a combination of cancelling bid and buying OR cancelling offer and selling (same Unsigs only)
                         case tradeDatum of
-                            (Bid TradeDetails{..}) -> case (containsPolicyBidNFT v1 budId, containsSpaceBudNFT v2 budId) of
-                                    (True, True) -> v1 -- expected script input 1 to contain bid token and script input 2 SpaceBud 
-                                    (False, False) -> v2 -- expected script input 2 to contain bid token and script input 1 SpaceBud
-                            (Offer TradeDetails{..}) -> case (containsSpaceBudNFT v1 budId, containsPolicyBidNFT v2 budId) of
-                                (True, True) -> v1 -- expected script input 2 to contain bid token and script input 1 SpaceBud 
-                                (False, False) -> v2 -- expected script input 1 to contain bid token and script input 2 SpaceBud
+                            (Bid TradeDetails{..}) -> case (containsPolicyBidNFT v1 nftId, containsUnsigsNFT v2 nftId) of
+                                    (True, True) -> v1 -- expected script input 1 to contain bid token and script input 2 Unsigs 
+                                    (False, False) -> v2 -- expected script input 2 to contain bid token and script input 1 Unsigs
+                            (Offer TradeDetails{..}) -> case (containsUnsigsNFT v1 nftId, containsPolicyBidNFT v2 nftId) of
+                                (True, True) -> v1 -- expected script input 2 to contain bid token and script input 1 Unsigs 
+                                (False, False) -> v2 -- expected script input 1 to contain bid token and script input 2 Unsigs
                                  
 
         scriptOutputValue :: Value
@@ -176,11 +176,11 @@ tradeValidate contractInfo@ContractInfo{..} tradeDatum tradeAction context = cas
                                         policyBidLength scriptInputValue - 1 == policyBidLength v1 && -- expected correct policyBid NFTs amount in output
                                         case info2 of
                                             (v2, Bid TradeDetails{..}) ->
-                                                containsPolicyBidNFT v2 budId && -- expected policyBid NFT in output
+                                                containsPolicyBidNFT v2 nftId && -- expected policyBid NFT in output
                                                 getLovelace (Ada.fromValue v2) >= minPrice && -- expected at least minPrice bid
                                                 requestedAmount == 1 -- expeced correct output datum amount
                                     (v1, Bid TradeDetails{..}) -> 
-                                        containsPolicyBidNFT v1 budId && -- expected policyBid NFT in output
+                                        containsPolicyBidNFT v1 nftId && -- expected policyBid NFT in output
                                         getLovelace (Ada.fromValue v1) >= minPrice && -- expected at least minPrice bid
                                         requestedAmount == 1 && -- expeced correct output datum amount
                                         case info2 of
@@ -190,7 +190,7 @@ tradeValidate contractInfo@ContractInfo{..} tradeDatum tradeAction context = cas
                 case getContinuingOutputs context of
                     [o] -> let (value, datum) = outputInfo o in case datum of
                             (Bid TradeDetails{..}) ->
-                                containsPolicyBidNFT value budId && -- expected policyBid NFT in output
+                                containsPolicyBidNFT value nftId && -- expected policyBid NFT in output
                                 getLovelace (Ada.fromValue value) >= minPrice && -- expected at least minPrice bid
                                 requestedAmount == 1 -- expeced correct output datum amount
 

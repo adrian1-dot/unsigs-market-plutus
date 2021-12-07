@@ -61,10 +61,10 @@ import qualified Plutus.V1.Ledger.Api as Plutus
 
 
 data ContractInfo = ContractInfo
-    { policySpaceBudz :: !CurrencySymbol
+    { policyUnsigs :: !CurrencySymbol
     , policyBid :: !CurrencySymbol
-    , prefixSpaceBud :: !BuiltinByteString
-    , prefixSpaceBudBid :: !BuiltinByteString
+    , prefixUnsigs :: !BuiltinByteString
+    , prefixUnsigsBid :: !BuiltinByteString
     , owner1 :: !(PubKeyHash, Integer, Integer)
     , owner2 :: !(PubKeyHash, Integer)
     , extraRecipient :: !Integer
@@ -79,14 +79,14 @@ PlutusTx.makeLift ''ContractInfo
 
 data TradeDetails = TradeDetails
     { tradeOwner :: !PubKeyHash
-    , budId :: !BuiltinByteString
+    , nftId :: !BuiltinByteString
     , requestedAmount :: !Integer
     } deriving (Generic, ToJSON, FromJSON)
 
 instance Eq TradeDetails where
     {-# INLINABLE (==) #-}
     -- tradeOwner is not compared, since tradeOwner can changes with each trade/higher bid
-    a == b = (budId  a == budId  b) &&
+    a == b = (nftId  a == nftId  b) &&
              (requestedAmount a == requestedAmount b)
 
 PlutusTx.makeIsDataIndexed ''TradeDetails [ ('TradeDetails, 0)]

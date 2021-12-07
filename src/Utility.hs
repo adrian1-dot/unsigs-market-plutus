@@ -15,7 +15,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE BangPatterns               #-}
-
+{-# LANGUAGE NumericUnderscores         #-}
 
 module Utility (contractInfo, prefixToken, prefixBidToken, wallet, assetSymbol1, assetSymbol2) where 
 
@@ -23,50 +23,51 @@ module Utility (contractInfo, prefixToken, prefixBidToken, wallet, assetSymbol1,
 import           Plutus.V1.Ledger.Crypto (PubKeyHash)
 import           Ledger (pubKeyHash)
 import Plutus.V1.Ledger.Value (CurrencySymbol(..), TokenName(..), Value(..))
-import           Wallet.Emulator.Types (WalletNumber (..), fromWalletNumber, Wallet (..))
-import           Wallet.Emulator.Wallet (Wallet, walletPubKeyHash)
+import           Wallet.Emulator.Types (WalletNumber (..), fromWalletNumber, walletPubKeyHash, Wallet (..), WalletId (..))
+import           Wallet.Emulator.Wallet (Wallet, knownWallet, fromBase16)
 import           PlutusTx.Prelude ((.), BuiltinByteString)
 import           PlutusTx.Builtins.Internal (BuiltinByteString (..), encodeUtf8, BuiltinString)
 import           PlutusTx.Builtins.Class 
 import           Prelude hiding ((.))
+import           Data.Either
 
 import Types (ContractInfo (..))
 
 
-wallet :: Integer -> Wallet 
-wallet = fromWalletNumber . WalletNumber 
+wallet :: Integer -> Wallet
+wallet = fromWalletNumber . WalletNumber
 
 owner1Pkh :: PubKeyHash
-owner1Pkh = walletPubKeyHash $ wallet 1
+owner1Pkh = walletPubKeyHash $ wallet 6
 
 owner2Pkh :: PubKeyHash 
-owner2Pkh = walletPubKeyHash $ wallet 2
+owner2Pkh = walletPubKeyHash $ wallet 7
 
 assetSymbol1 :: CurrencySymbol
-assetSymbol1 = CurrencySymbol {unCurrencySymbol= "policySpaceBudz"}
+assetSymbol1 = CurrencySymbol {unCurrencySymbol= "policyUnsigs"}
 
 prefixToken :: BuiltinByteString
-prefixToken = encodeUtf8 $ stringToBuiltinString "SpaceBud"
+prefixToken = encodeUtf8 $ stringToBuiltinString "Unsigs"
 
 assetSymbol2 :: CurrencySymbol
 assetSymbol2 = CurrencySymbol {unCurrencySymbol = "policyBid"}
 
 prefixBidToken :: BuiltinByteString
-prefixBidToken = encodeUtf8 $ stringToBuiltinString "SpaceBudBid"
+prefixBidToken = encodeUtf8 $ stringToBuiltinString "UnsigsBid"
 
 contractInfo :: ContractInfo
 contractInfo = ContractInfo 
-    { policySpaceBudz = assetSymbol1
+    { policyUnsigs = assetSymbol1
     , policyBid = assetSymbol2
-    , prefixSpaceBud = prefixToken
-    , prefixSpaceBudBid = prefixBidToken
+    , prefixUnsigs = prefixToken
+    , prefixUnsigsBid = prefixBidToken
     , owner1 = ( owner1Pkh, 416, 625) -- 2.4% 1.6%
     , owner2 = ( owner2Pkh, 2500) -- 0.4%
     , extraRecipient = 2500 -- 0.4%
-    , minPrice = 70000000
-    , bidStep = 10000
+    , minPrice = 70_000_000
+    , bidStep = 10_000
     }
-
+{--
 contractInfoSpace :: ContractInfo
 contractInfoSpace = ContractInfo 
     { policySpaceBudz = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"
@@ -79,5 +80,5 @@ contractInfoSpace = ContractInfo
     , minPrice = 70000000
     , bidStep = 10000
     }
-
+--}
 
